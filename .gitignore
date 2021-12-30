@@ -1,0 +1,6 @@
+.pybuilder
+.idea
+.venv
+venv
+__pycache__
+target
