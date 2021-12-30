@@ -1,6 +1,7 @@
 .pybuilder
 .idea
 .venv
+.coverage
 venv
 __pycache__
 target
