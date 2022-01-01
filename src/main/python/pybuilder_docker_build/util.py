@@ -18,7 +18,7 @@ def _build_args(project: Project, logger: Logger):
         "PROJECT_NAME": project.name,
         "PROJECT_VERSION": project.version,
         "PROJECT_DIST_VERSION": project.dist_version,
-        "PROJECT_DIST": project.expand_path(project.get_property("dir_dist"))
+        "PROJECT_DIST": os.path.relpath(project.expand_path(project.get_property("dir_dist")), start=project.get_property("docker_build_path"))
     }
     if project.has_property("docker_build_args"):
         build_args_dict.update(project.get_property("docker_build_args"))

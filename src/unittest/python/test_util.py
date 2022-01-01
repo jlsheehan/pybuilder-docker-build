@@ -1,4 +1,5 @@
 import logging
+import os
 
 from pybuilder.core import Project
 
@@ -18,6 +19,8 @@ def test_full_image_tag(mocker):
 
 
 def test_empty_build_args(mocker):
+    os.path.relpath = mocker.Mock()
+    os.path.relpath.return_value = "target/dist/test-project-0.0.1"
     project = mocker.Mock(Project)
     project.name = "test-project"
     project.version = "0.0.1"
@@ -34,6 +37,9 @@ def test_empty_build_args(mocker):
 
 
 def test_build_args(mocker):
+    os.path.relpath = mocker.Mock()
+    os.path.relpath.return_value = "target/dist/test-project-0.0.1"
+
     project = mocker.Mock(Project)
     project.name = "test-project"
     project.version = "0.0.1"

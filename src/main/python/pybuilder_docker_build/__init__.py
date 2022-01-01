@@ -1,24 +1,25 @@
 import os
 
 from docker import DockerClient
-from pybuilder.core import task, Project, Logger, init
+from pybuilder.core import task, Project, Logger, init, depends
 
 from pybuilder_docker_build import util
 from pybuilder_docker_build.util import _full_image_tag, _build_args, _get_docker_client
 
 
 @init
-def init_docker_build(project: Project, logger: Logger):
+def init_docker_build(project: Project):
     project.set_property_if_unset("docker_cli", False)
     project.set_property_if_unset("docker_path", "docker")
     project.set_property_if_unset("docker_build_file", "Dockerfile")
-    project.set_property_if_unset("docker_build_path", ".")
+    project.set_property_if_unset("docker_build_path", project.get_property("basedir"))
     project.set_property_if_unset("docker_build_force_rm", False)
     project.set_property_if_unset("docker_image_repo", project.name)
     project.set_property_if_unset("docker_image_tag", "latest")
 
 
 @task
+@depends("publish")
 def docker_build(project: Project, logger: Logger):
     if project.get_property("docker_cli", False):
         docker_command = ("{docker_path} "
@@ -36,29 +37,17 @@ def docker_build(project: Project, logger: Logger):
         logger.debug("Executing %s", docker_command)
         os.system(docker_command)
     else:
+        logger.debug("docker build path %s", project.get_property("docker_build_path"))
         docker_client: DockerClient = _get_docker_client()
         docker_image, docker_logs = docker_client.images.build(
             path=project.get_property("docker_build_path"),
-            dockerfile=project.get_property("docker__build_file"),
+            dockerfile=project.get_property("docker_build_file"),
             buildargs=_build_args(project, logger),
             tag=_full_image_tag(project)
         )
         for line_dict in docker_logs:
             if "stream" in line_dict:
                 logger.debug(line_dict["stream"].strip())
-
-
-# @task
-# def docker_push(project: Project, logger: Logger):
-#     docker_image_repo = project.get_property("docker_image_repo")
-#     docker_image_tag = project.get_property("docker_image_tag", "latest")
-#     if project.get_property("docker_cli", False):
-#         pass
-#     else:
-#         docker_client: DockerClient = _get_docker_client()
-#         docker_logs = docker_client.images.push(docker_image_repo, tag=docker_image_tag, stream=True, decode=True)
-#         for line in docker_logs:
-#             logger.debug(line)
 
 
 @task
@@ -83,3 +72,24 @@ def docker_save(project: Project, logger: Logger):
             for chunk in docker_image.save():
                 f.write(chunk)
         logger.info("Wrote docker image to %s", docker_image_file)
+
+
+@task
+def docker_push(project: Project, logger: Logger):
+    if project.get_property("docker_cli", False):
+        docker_command = ("{docker_path} push {image_tag}".format(
+            docker_path=project.get_property("docker_path"),
+            image_tag=_full_image_tag(project)
+        ))
+        logger.debug("Executing %s", docker_command)
+        os.system(docker_command)
+    else:
+        docker_client: DockerClient = _get_docker_client()
+        docker_logs = docker_client.images.push(
+            project.get_property("docker_image_repo"),
+            tag=project.get_property("docker_image_tag"),
+            stream=True,
+            decode=True)
+        for line in docker_logs:
+            logger.debug(line)
+    logger.ingo("Completed docker push")
