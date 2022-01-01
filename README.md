@@ -30,16 +30,16 @@ This will add the following tasks to your build:
 
 The following properties are available:
 
-| Property              | Value        | Default      | Usage                                    |
-|-----------------------|--------------|--------------|------------------------------------------|
-| docker_cli            | True / False | False        | Use docker cli to do build               |
-| docker_path           | str          | docker       | Path to docker executable                |
-| docker_build_path     | str          | .            | Path to docker build directory           |
-| docker_build_file     | str          | Dockerfile   | Dockerfile to use for build              |
-| docker_build_force_rm | True / False | False        | Use the force rm feature of docker build |
-| docker_image_repo     | str          | project.name | The name of the image repository         |
-| docker_image_tag      | str          | latest       | A tag to apply to the repository         |
-| docker_build_args     | dict         |              | A dict of build args                     |
+| Property              | Value        | Default            | Usage                                                               |
+|-----------------------|--------------|--------------------|---------------------------------------------------------------------|
+| docker_cli            | True / False | False              | Use docker cli to do build                                          |
+| docker_path           | str          | docker             | Path to docker executable                                           |
+| docker_build_path     | str          | `basedir` property | Path to docker build directory                                      |
+| docker_build_file     | str          | Dockerfile         | Dockerfile to use for build, relative path from `docker_build_path` |
+| docker_build_force_rm | True / False | False              | Use the force rm feature of docker build                            |
+| docker_image_repo     | str          | `project.name`     | The name of the image repository                                    |
+| docker_image_tag      | str          | latest             | A tag to apply to the repository                                    |
+| docker_build_args     | dict         | None               | A dict of build args                                                |
 
 By default there are several build args that are supplied to the docker build, additional args can
 be added with the `docker_build_args` property.  The default build args are:
