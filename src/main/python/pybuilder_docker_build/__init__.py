@@ -26,6 +26,7 @@ def docker_build(project: Project, logger: Logger):
                           "build "
                           "-t {image_tag} "
                           "-f {docker_build_file} "
+                          "{forcerm}"
                           "{build_args} "
                           "{docker_build_path}".format(
                                 docker_path=project.get_property("docker_path"),
@@ -33,7 +34,7 @@ def docker_build(project: Project, logger: Logger):
                                 image_tag=_full_image_tag(project),
                                 build_args=" ".join([f"--build-arg {k}={v}" for k, v in _build_args(project, logger).items()]),
                                 docker_build_file=project.get_property("docker_build_file"),
-                                forcerm=project.get_property("docker_build_force_rm")))
+                                forcerm="--force-rm " if project.get_property("docker_build_force_rm") else ""))
         logger.debug("Executing %s", docker_command)
         os.system(docker_command)
     else:
@@ -43,7 +44,8 @@ def docker_build(project: Project, logger: Logger):
             path=project.get_property("docker_build_path"),
             dockerfile=project.get_property("docker_build_file"),
             buildargs=_build_args(project, logger),
-            tag=_full_image_tag(project)
+            tag=_full_image_tag(project),
+            forcerm=project.get_property("docker_build_force_rm")
         )
         for line_dict in docker_logs:
             if "stream" in line_dict:
