@@ -39,3 +39,14 @@ The following properties are available:
 | docker_build_force_rm | True / False | False        | Use the force rm feature of docker build |
 | docker_image_repo     | str          | project.name | The name of the image repository         |
 | docker_image_tag      | str          | latest       | A tag to apply to the repository         |
+| docker_build_args     | dict         |              | A dict of build args                     |
+
+By default there are several build args that are supplied to the docker build, additional args can
+be added with the `docker_build_args` property.  The default build args are:
+
+| Argument             | Value                                                                  |
+|----------------------|------------------------------------------------------------------------|
+| PROJECT_NAME         | `project.name`                                                         |
+| PROJECT_VERSION      | `project.version`                                                      |
+| PROJECT_DIST_VERSION | `project.dist_version`                                                 |
+| PROJECT_DIST         | The relative path from the `docker_build_path` property to `$dir_dist` |
