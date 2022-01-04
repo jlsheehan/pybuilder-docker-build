@@ -14,7 +14,7 @@ def _full_image_tag(project):
 
 
 def _build_args(project: Project, logger: Logger):
-    build_args_dict={
+    build_args_dict = {
         "PROJECT_NAME": project.name,
         "PROJECT_VERSION": project.version,
         "PROJECT_DIST_VERSION": project.dist_version,

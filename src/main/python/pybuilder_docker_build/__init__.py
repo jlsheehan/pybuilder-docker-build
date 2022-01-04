@@ -18,7 +18,7 @@ def init_docker_build(project: Project):
     project.set_property_if_unset("docker_image_tag", "latest")
 
 
-@task
+@task(description="Perform docker build to create a docker image")
 @depends("publish")
 def docker_build(project: Project, logger: Logger):
     if project.get_property("docker_cli", False):
@@ -32,7 +32,7 @@ def docker_build(project: Project, logger: Logger):
                                 docker_path=project.get_property("docker_path"),
                                 docker_build_path=project.get_property("docker_build_path"),
                                 image_tag=_full_image_tag(project),
-                                build_args=" ".join([f"--build-arg {k}={v}" for k, v in _build_args(project, logger).items()]),
+                                build_args=" ".join([f'--build-arg {k}="{v}"' for k, v in _build_args(project, logger).items()]),
                                 docker_build_file=project.get_property("docker_build_file"),
                                 forcerm="--force-rm " if project.get_property("docker_build_force_rm") else ""))
         logger.debug("Executing %s", docker_command)
@@ -52,7 +52,8 @@ def docker_build(project: Project, logger: Logger):
                 logger.debug(line_dict["stream"].strip())
 
 
-@task
+@task(description="Save built docker image to local dist directory")
+@depends("docker_build")
 def docker_save(project: Project, logger: Logger):
     docker_image_dir = project.expand_path(project.get_property("dir_dist"), "image")
     docker_image_file = os.path.join(docker_image_dir, f"{project.name}-{project.version}.tar")
@@ -60,13 +61,13 @@ def docker_save(project: Project, logger: Logger):
     os.mkdir(docker_image_dir)
 
     if project.get_property("docker_cli"):
-        docker_command = "{docker_path} save -o {docker_image_file} {docker_full_image_tag}".format(
+        docker_save_command = "{docker_path} save -o {docker_image_file} {docker_full_image_tag}".format(
             docker_path=project.get_property("docker_path"),
             docker_image_file=docker_image_file,
             docker_full_image_tag=_full_image_tag(project)
         )
-        logger.debug("Executing %s", docker_command)
-        os.system(docker_command)
+        logger.debug("Executing %s", docker_save_command)
+        os.system(docker_save_command)
     else:
         docker_client: DockerClient = _get_docker_client()
         docker_image = docker_client.images.get(_full_image_tag(project))
@@ -76,22 +77,37 @@ def docker_save(project: Project, logger: Logger):
         logger.info("Wrote docker image to %s", docker_image_file)
 
 
-@task
+@task(description="Push built docker image to registry")
+@depends("docker_build")
 def docker_push(project: Project, logger: Logger):
     if project.get_property("docker_cli", False):
-        docker_command = ("{docker_path} push {image_tag}".format(
+        if project.has_property("docker_registry_auth"):
+            docker_login_command = ("{docker_path} login "
+                                    "--username {docker_username} "
+                                    "--password {docker_password} "
+                                    "{docker_registry}"
+                                    ).format(
+                docker_path=project.get_property("docker_path"),
+                docker_username=project.get_property("docker_registry_auth")["username"],
+                docker_password=project.get_property("docker_registry_auth")["password"],
+                docker_registry=project.get_property("docker_registry") if project.has_property("docker_registry") else ""
+            )
+            logger.debug("Running command %s", docker_login_command)
+            os.system(docker_login_command)
+        docker_push_command = ("{docker_path} push {image_tag}".format(
             docker_path=project.get_property("docker_path"),
             image_tag=_full_image_tag(project)
         ))
-        logger.debug("Executing %s", docker_command)
-        os.system(docker_command)
+        logger.debug("Executing %s", docker_push_command)
+        os.system(docker_push_command)
     else:
         docker_client: DockerClient = _get_docker_client()
         docker_logs = docker_client.images.push(
             project.get_property("docker_image_repo"),
             tag=project.get_property("docker_image_tag"),
+            auth_config=project.get_property("docker_registry_auth", None),
             stream=True,
             decode=True)
         for line in docker_logs:
             logger.debug(line)
-    logger.ingo("Completed docker push")
+    logger.info("Completed docker push")
