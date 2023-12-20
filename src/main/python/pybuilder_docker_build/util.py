@@ -1,5 +1,5 @@
 import os
-
+import posixpath
 from docker import DockerClient
 from pybuilder.core import Project, Logger
 
@@ -18,7 +18,7 @@ def _build_args(project: Project, logger: Logger):
         "PROJECT_NAME": project.name,
         "PROJECT_VERSION": project.version,
         "PROJECT_DIST_VERSION": project.dist_version,
-        "PROJECT_DIST": os.path.relpath(project.expand_path(project.get_property("dir_dist")), start=project.get_property("docker_build_path"))
+        "PROJECT_DIST_DIR": posixpath.join(os.path.relpath(project.expand_path(project.get_property("dir_dist")), start=project.get_property("docker_build_path")))
     }
     if project.has_property("docker_build_args"):
         build_args_dict.update(project.get_property("docker_build_args"))

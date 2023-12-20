@@ -51,7 +51,7 @@ be added with the `docker_build_args` property.  The default build args are:
 | PROJECT_NAME         | `project.name`                                                         |
 | PROJECT_VERSION      | `project.version`                                                      |
 | PROJECT_DIST_VERSION | `project.dist_version`                                                 |
-| PROJECT_DIST         | The relative path from the `docker_build_path` property to `$dir_dist` |
+| PROJECT_DIST_DIR     | The relative path from the `docker_build_path` property to `$dir_dist` |
 
 Authentication
 --------------

@@ -31,7 +31,7 @@ def test_empty_build_args(mocker):
         "PROJECT_NAME": "test-project",
         "PROJECT_VERSION": "0.0.1",
         "PROJECT_DIST_VERSION": "0.0.1",
-        "PROJECT_DIST": "target/dist/test-project-0.0.1"
+        "PROJECT_DIST_DIR": "target/dist/test-project-0.0.1"
     }
     assert util._build_args(project, logger) == result
 
@@ -54,7 +54,7 @@ def test_build_args(mocker):
         "PROJECT_NAME": "test-project",
         "PROJECT_VERSION": "0.0.1",
         "PROJECT_DIST_VERSION": "0.0.1",
-        "PROJECT_DIST": "target/dist/test-project-0.0.1",
+        "PROJECT_DIST_DIR": "target/dist/test-project-0.0.1",
         "EXTRA": "extra",
         "ARG": "arg"
     }

@@ -20,5 +20,7 @@ default_task = "publish"
 @init
 def set_properties(project: Project):
     project.depends_on("docker")
+    project.build_depends_on("pytest")
+    project.build_depends_on("pytest-mock")
     project.set_property("distutils_readme_description", True)
     project.set_property("distutils_description_overwrite", True)
