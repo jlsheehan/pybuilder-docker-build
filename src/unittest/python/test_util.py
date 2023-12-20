@@ -20,8 +20,7 @@ def test_full_image_tag(mocker):
 
 def test_empty_build_args(mocker):
     os.path.relpath = mocker.Mock()
-    os.path.relpath.return_value = "target/dist/test-project-0.0.1"
-    project = mocker.Mock(Project)
+    project = mocker.Mock(Project, get_property=mock_properties)
     project.name = "test-project"
     project.version = "0.0.1"
     project.dist_version = "0.0.1"
@@ -35,21 +34,25 @@ def test_empty_build_args(mocker):
     }
     assert util._build_args(project, logger) == result
 
+def mock_properties(property):
+    if property == "docker_build_path":
+        return "."
+    elif property == "docker_build_args":
+        return {
+        "EXTRA": "extra",
+        "ARG": "arg"
+    }
 
 def test_build_args(mocker):
     os.path.relpath = mocker.Mock()
     os.path.relpath.return_value = "target/dist/test-project-0.0.1"
 
-    project = mocker.Mock(Project)
+    project = mocker.Mock(Project, get_property=mock_properties)
     project.name = "test-project"
     project.version = "0.0.1"
     project.dist_version = "0.0.1"
     project.expand_path.return_value = "target/dist/test-project-0.0.1"
     project.has_property.return_value = True
-    project.get_property.return_value = {
-        "EXTRA": "extra",
-        "ARG": "arg"
-    }
     result = {
         "PROJECT_NAME": "test-project",
         "PROJECT_VERSION": "0.0.1",
